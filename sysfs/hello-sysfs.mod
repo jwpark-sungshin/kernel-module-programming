@@ -1,2 +1,2 @@
-/home/jwpark12/sysfs/hello-sysfs.o
+/home/jwpark12/kernel-module-programming/sysfs/hello-sysfs.o
 

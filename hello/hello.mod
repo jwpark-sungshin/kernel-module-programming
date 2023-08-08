@@ -1,2 +1,2 @@
-/home/jwpark12/hello/hello.o
+/home/jwpark12/kernel-module-programming/hello/hello.o
 

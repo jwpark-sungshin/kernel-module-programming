@@ -1,6 +1,3 @@
-/* 
- * hello-sysfs.c sysfs example 
- */ 
 #include <linux/fs.h> 
 #include <linux/init.h> 
 #include <linux/kobject.h> 
@@ -12,21 +9,44 @@ static struct kobject *mymodule;
  
 /* the variable you want to be able to change */ 
 
+struct my_operations {
+	ssize_t (*traverse)(char *buf);
+	ssize_t (*insert)(char *buf, size_t count);
+};
+
+
 int myvariable = 0; 
 EXPORT_SYMBOL(myvariable);
 
+static ssize_t mytraverse (char *buf)
+{
+    return sprintf(buf, "%d\n", myvariable); 
+}
+static ssize_t myinsert (char *buf, size_t count)
+{
+    sscanf(buf, "%du", &myvariable); 
+    return count;
+}
+
+static struct my_operations default_op = {
+	.traverse = mytraverse,
+	.insert = myinsert
+};
+
+struct my_operations *myop;
+EXPORT_SYMBOL(myop);
+ 
 static ssize_t myvariable_show(struct kobject *kobj, 
                                struct kobj_attribute *attr, char *buf) 
 { 
-    return sprintf(buf, "%d\n", myvariable); 
+	return myop->traverse(buf);
 } 
  
 static ssize_t myvariable_store(struct kobject *kobj, 
                                 struct kobj_attribute *attr, char *buf, 
                                 size_t count) 
 { 
-    sscanf(buf, "%du", &myvariable); 
-    return count; 
+	return myop->insert(buf, count);
 } 
  
 static struct kobj_attribute myvariable_attribute = 
@@ -37,6 +57,7 @@ static int __init mymodule_init(void)
     int error = 0; 
  
     pr_info("mymodule: initialised\n"); 
+	myop = &default_op;
  
     mymodule = kobject_create_and_add("mymodule", kernel_kobj); 
     if (!mymodule) 
